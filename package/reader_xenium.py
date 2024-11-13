@@ -11,16 +11,14 @@ from shapely.geometry import Polygon
 from typing import Tuple, List, Optional
 
 from package.reader_abc import AbstractDataReader
-from package.subset_creator_common import (
-    read_crop_info_json, global_to_local, microns_to_pixel, pixel_to_microns
-)
-
+from package.subset_creator_common import CommonSubsetCreator
 
 class XeniumDataReader(AbstractDataReader):
     def __init__(self, input_dir, output_dir, fov, width, height, resampling_factor:float =0.2125, z:int = None):
         super().__init__(input_dir, output_dir, fov, width, height)
         self.resampling_factor = resampling_factor
         self.z = z
+        common = CommonSubsetCreator()
 
     def read_gene_data(self) -> Tuple[DataFrame, List[str]]:
         subset_dir, img_dir = self.get_path()
@@ -62,7 +60,7 @@ class XeniumDataReader(AbstractDataReader):
         # fov_cell_dfを作る関数
         cell_ddf = dd.read_parquet(parquet_path)
         crop_json_path = os.path.join(self.output_dir, f"crop_info.json")
-        x_init, y_init, x_last, y_last = read_crop_info_json(crop_json_path, self.fov)
+        x_init, y_init, x_last, y_last = self.common.read_crop_info_json(crop_json_path, self.fov)
         # pixel -> micron
         microns_per_pixel = self.resampling_factor
         bbox_micron_x = 0.0
@@ -70,18 +68,18 @@ class XeniumDataReader(AbstractDataReader):
 
         print(self.resampling_factor)
         print(float(x_init), float(y_init), microns_per_pixel, bbox_micron_x, bbox_micron_y)
-        x_min_micron, y_min_micron = pixel_to_microns(float(x_init), float(y_init), microns_per_pixel, bbox_micron_x, bbox_micron_y)
-        x_width_micron, y_height_micron = pixel_to_microns(float(x_last), float(y_last), microns_per_pixel, bbox_micron_x, bbox_micron_y)
+        x_min_micron, y_min_micron = self.common.pixel_to_microns(float(x_init), float(y_init), microns_per_pixel, bbox_micron_x, bbox_micron_y)
+        x_width_micron, y_height_micron = self.common.pixel_to_microns(float(x_last), float(y_last), microns_per_pixel, bbox_micron_x, bbox_micron_y)
 
         filltered_df = cell_ddf.query(f'{x_min_micron} <= vertex_x & vertex_x <= {x_width_micron} & {y_min_micron} <= vertex_y & vertex_y <= {y_height_micron}').compute() 
 
         filltered_df[["vertex_x_pixel", "vertex_y_pixel"]] = filltered_df.apply(
-            lambda row: microns_to_pixel(row["vertex_x"], row["vertex_y"], microns_per_pixel, bbox_micron_x, bbox_micron_y), 
+            lambda row: self.common.microns_to_pixel(row["vertex_x"], row["vertex_y"], microns_per_pixel, bbox_micron_x, bbox_micron_y), 
             axis=1, result_type = "expand"
         )
 
         filltered_df[["local_pixel_x", "local_pixel_y"]] = filltered_df.apply(
-            lambda row: global_to_local(row["vertex_x_pixel"], row["vertex_y_pixel"], x_init, y_init), 
+            lambda row: self.common.global_to_local(row["vertex_x_pixel"], row["vertex_y_pixel"], x_init, y_init), 
             axis=1, result_type = "expand"
         )
 
@@ -92,7 +90,7 @@ class XeniumDataReader(AbstractDataReader):
 """ 
 # 使用例
 if __name__ == "__main__":
-    input_dir = "/work/datasets/Okada/output-XETG00130__0014491__Cont_3_1__20240403__094846"
+    input_dir = "/work/datasets/"
     output_dir = "/work/output_Xenium"
     resampling_factor = 0.2125
 
