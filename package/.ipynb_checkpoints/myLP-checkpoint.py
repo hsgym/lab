@@ -21,9 +21,11 @@ def my_LP_test(sce:pd.DataFrame, spe:pd.DataFrame, output_path: Optional[str] = 
     ref_list = [tmp for _ in range(len(spe.columns))]
     
     # sceで全ての細胞において発現していない遺伝子を削除
-    spe = spe[sce.sum(axis=1) != 0]
-    sce = sce[sce.sum(axis=1) != 0]
-
+    # 警告を回避するためにインデックスを一致させたフィルタリング
+    filter_condition = (sce.sum(axis=1) != 0)
+    spe = spe.loc[filter_condition]  # 明示的にインデックスを一致させてフィルタリング
+    sce = sce.loc[filter_condition]
+    
     # 遺伝子が発現している細胞のインデックスリストを作成
     cell_indexlist = []
     for gene in sce.index:

@@ -49,7 +49,7 @@ class MerscopeSubsetCreator(AbstractSubsetCreator, CommonSubsetCreator):
 
     @error_handler
     def calculate_crop_coordinates(self, json_path:str, x_min_micron:float, y_min_micron:float)-> Tuple[int, int, int, int]:
-        microns_per_pixel, bbox_micron_x, bbox_micron_y, image_width, image_height = self.read_manifest_json(self.input_dir)
+        microns_per_pixel, bbox_micron_x, bbox_micron_y, image_width, image_height = self.read_manifest_json()
         x_min_pixel, y_min_pixel = self.microns_to_pixel(x_min_micron, y_min_micron, microns_per_pixel, bbox_micron_x, bbox_micron_y)
 
         x_init = int(max(0, min(x_min_pixel, image_width - self.width)))
@@ -97,11 +97,11 @@ class MerscopeSubsetCreator(AbstractSubsetCreator, CommonSubsetCreator):
         if os.path.exists(crop_json_path):
             x_init, y_init, x_last, y_last = self.read_crop_info_json(crop_json_path, self.fov)
             if x_init == -1 & y_init == -1:
-                x_min_micron, y_min_micron = self.get_min_coordinates(self.input_dir, self.fov)
-                x_init, y_init, x_last, y_last = self.calculate_crop_coordinates(self.input_dir, self.fov, crop_json_path, x_min_micron, y_min_micron, self.width, self.height)
+                x_min_micron, y_min_micron = self.get_min_coordinates()
+                x_init, y_init, x_last, y_last = self.calculate_crop_coordinates(crop_json_path, x_min_micron, y_min_micron)
         else:
-            x_min_micron, y_min_micron = self.get_min_coordinates(self.input_dir, self.fov)
-            x_init, y_init, x_last, y_last = self.calculate_crop_coordinates(self.input_dir, self.fov, crop_json_path, x_min_micron, y_min_micron, self.width, self.height)
+            x_min_micron, y_min_micron = self.get_min_coordinates()
+            x_init, y_init, x_last, y_last = self.calculate_crop_coordinates(crop_json_path, x_min_micron, y_min_micron)
         
         return x_init, y_init, x_last, y_last
 
@@ -115,12 +115,12 @@ class MerscopeSubsetCreator(AbstractSubsetCreator, CommonSubsetCreator):
             raise FileNotFoundError(f'{e}: {csv_path} not found')
         
         # ddf から x_min_pixel ~ x_min_pixel+widht かつ y_min_pixel ~ y_min_pixel + height を抽出する 
-        microns_per_pixel, bbox_micron_x, bbox_micron_y, _image_width, _image_height = self.read_manifest_json(self.input_dir)
+        microns_per_pixel, bbox_micron_x, bbox_micron_y, _image_width, _image_height = self.read_manifest_json()
         x_width_micron, y_height_micron = self.pixel_to_microns(x_last, y_last, microns_per_pixel, bbox_micron_x, bbox_micron_y)
-        x_min_micron, y_min_micron = self.get_min_coordinates(self.input_dir, self.fov)
+        x_min_micron, y_min_micron = self.get_min_coordinates()
         selected_df = data_ddf.query(f'{x_min_micron} <= global_x & global_x <= {x_width_micron} & {y_min_micron} <= global_y & global_y <= {y_height_micron}').compute() 
 
-        microns_per_pixel, bbox_micron_x, bbox_micron_y, _image_width, _image_height = self.read_manifest_json(self.input_dir)
+        microns_per_pixel, bbox_micron_x, bbox_micron_y, _image_width, _image_height = self.read_manifest_json()
         selected_df[["global_pixel_x", "global_pixel_y"]] = selected_df.apply(
             lambda row: self.microns_to_pixel(row["global_x"], row["global_y"], microns_per_pixel, bbox_micron_x, bbox_micron_y), 
             axis=1, result_type = "expand"
@@ -138,24 +138,24 @@ class MerscopeSubsetCreator(AbstractSubsetCreator, CommonSubsetCreator):
         return
 
     @error_handler
-    def get_imagepath(self, image_keywords) -> List[str]:
+    def get_imagepath(self) -> List[str]:
         path_list = []    
         image_input_dir = os.path.join(self.input_dir, "images")
 
         if not os.path.exists(image_input_dir):
             raise Exception(f"{image_input_dir} not found")
 
-        if not image_keywords:
+        if not self.image_keyword:
             tif_files = [f for f in os.listdir(image_input_dir) if f.endswith(".tif")]
         else:
-            tif_files = [f for f in os.listdir(image_input_dir) if f.endswith(".tif") and all(word in f for word in image_keywords)]
+            tif_files = [f for f in os.listdir(image_input_dir) if f.endswith(".tif") and all(word in f for word in self.image_keyword)]
 
         for tif_file in tif_files:
             image_path = os.path.join(image_input_dir, tif_file)
             path_list.append(image_path)
 
         if not path_list:
-            raise Exception(f"no .tif files {'containing' if image_keywords else 'found'} {' and '.join(image_keywords)} in {image_input_dir}")
+            raise Exception(f"no .tif files {'containing' if self.image_keyword else 'found'} {' and '.join(self.image_keyword)} in {image_input_dir}")
 
         return path_list
         
@@ -166,7 +166,7 @@ class MerscopeSubsetCreator(AbstractSubsetCreator, CommonSubsetCreator):
         image_output_dir = os.path.join(subset_dir, "images")
         os.makedirs(image_output_dir, exist_ok=True) 
 
-        path_list = self.get_imagepath(self.input_dir, self.image_keyword)
+        path_list = self.get_imagepath()
         
         for index, tif_path in enumerate(path_list):
             with TiffFile(tif_path) as tif:
@@ -219,7 +219,7 @@ class MerscopeSubsetCreator(AbstractSubsetCreator, CommonSubsetCreator):
 """
 # 使用例
 if __name__ == "__main__":
-    input_dir = "/work/datasets/Yahara/202304161129_MsFetusHumerus-23003-2-VS71-YS_VMSC07201/region_0"
+    input_dir = "/work/datasets"
     output_dir = "/work/output_MERSCOPE"
 
     # subset分割

@@ -19,24 +19,20 @@ class MerscopeViewer(AbstractPlotPolygonViewer):
     def view_area(self, title:str = "", show_plot:bool=True, show_polygon:bool=True, image_keywords:List[str]=None) -> None:
         reader = MerscopeDataReader(self.input_dir, self.output_dir, self.fov, self.width, self.height, self.z)
         gene_df, gene_list = reader.read_gene_data()
-        mosaic_path = os.path.join(self.input_dir, "Cellpose_DAPI_CB3/cellpose_mosaic_space.parquet")
+        mosaic_path = os.path.join(self.input_dir, "cell_by_gene.csv")
+        # os.path.join(self.input_dir, "Cellpose_DAPI_CB3/cellpose_mosaic_space.parquet")
         cell_df = reader.read_cell_data(mosaic_path)
         
         subset_dir, img_dir = reader.get_path()
-         
 
-        # selected_df, gene_list = self.read_transcripts_data(subset_dir)
-        # mosaic_path = os.path.join(self.input_dir, "Cellpose_DAPI_CB3/cellpose_mosaic_space.parquet")
-        # fov_cell_df = self.read_cell_data(mosaic_path)
         total_gene_num = len(gene_list)
         plotter = CommonPlotPolygonViewer(img_dir, self.fov, self.z, title, self.width, self.height, gene_list=gene_list)
         plotter.display_area(cell_df, gene_df, show_plot, show_polygon, image_keywords)
-        # plotter.display_area(fov_cell_df, selected_df, show_plot=False)
-        # plotter.display_area(fov_cell_df, selected_df, show_polygon=False)
+
 
 """
 if __name__ == "__main__":
-    input_dir = "/work/datasets/Yahara/202304161129_MsFetusHumerus-23003-2-VS71-YS_VMSC07201/region_0"
+    input_dir = "/work/datasets/"
     output_dir = "/work/output_MERSCOPE"
     
     fov = 236

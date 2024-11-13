@@ -63,12 +63,12 @@ class XeniumSubsetCreator(AbstractSubsetCreator, CommonSubsetCreator):
                 fov_json_path = os.path.join(self.output_dir, "fov_info.json")
                 x_init, y_init, _x_fov, _y_fov = self.read_crop_info_json(fov_json_path, self.fov)
                 image_width, image_height = self.read_info_yaml(os.path.join(self.output_dir, "image_info.yaml"))
-                x_init, y_init, x_last, y_last = self.calculate_crop_coordinates(self.fov, crop_json_path, x_init, y_init, self.width, self.height, image_width, image_height)
+                x_init, y_init, x_last, y_last = self.calculate_crop_coordinates(crop_json_path, x_init, y_init, image_width, image_height)
         else:
             fov_json_path = os.path.join(self.output_dir, "fov_info.json")
             x_init, y_init, _x_fov, _y_fov = self.read_crop_info_json(fov_json_path, self.fov)
             image_width, image_height = self.read_info_yaml(os.path.join(self.output_dir, "image_info.yaml"))
-            x_init, y_init, x_last, y_last = self.calculate_crop_coordinates(self.fov, crop_json_path, x_init, y_init, self.width, self.height, image_width, image_height)
+            x_init, y_init, x_last, y_last = self.calculate_crop_coordinates(crop_json_path, x_init, y_init, image_width, image_height)
         
         return x_init, y_init, x_last, y_last
 
@@ -154,7 +154,7 @@ class XeniumSubsetCreator(AbstractSubsetCreator, CommonSubsetCreator):
 """
 # 使用例
 if __name__ == "__main__":
-    input_dir = "/work/datasets/Okada/output-XETG00130__0014491__Cont_3_1__20240403__094846"
+    input_dir = "/work/datasets"
     output_dir = "/work/output_Xenium"
     resampling_factor = 0.2125
 

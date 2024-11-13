@@ -11,12 +11,13 @@ from shapely.ops import transform
 from typing import List, Tuple, Optional
 
 from package.reader_abc import AbstractDataReader
-from package.subset_creator_common import read_crop_info_json
+from package.subset_creator_common import CommonSubsetCreator
 
 class MerscopeDataReader(AbstractDataReader):
     def __init__(self, input_dir, output_dir, fov, width, height, z = None):
         super().__init__(input_dir, output_dir, fov, width, height)
         self.z = z
+        common = CommonSubsetCreator()
 
     def read_gene_data(self) -> Tuple[DataFrame, List[str]]:
         subset_dir, img_dir = self.get_path()
@@ -60,7 +61,7 @@ class MerscopeDataReader(AbstractDataReader):
             z_df = cell_df.query(f"ZIndex == {self.z}")
 
         crop_json_path = os.path.join(self.output_dir, f"crop_info.json")
-        x_init, y_init, x_last, y_last = read_crop_info_json(crop_json_path, self.fov)
+        x_init, y_init, x_last, y_last = self.common.read_crop_info_json(crop_json_path, self.fov)
         search_area = box(x_init, y_init, x_last, y_last)
         
         # 範囲内の行のみを抽出
@@ -77,7 +78,7 @@ class MerscopeDataReader(AbstractDataReader):
 """
 # 使用例
 if __name__ == "__main__":
-    input_dir = "/work/datasets/Yahara/202304161129_MsFetusHumerus-23003-2-VS71-YS_VMSC07201/region_0"
+    input_dir = "/work/datasets/"
     output_dir = "/work/output_MERSCOPE"
     
     fov = 236

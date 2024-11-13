@@ -77,7 +77,7 @@ class MerscopeDataReader(AbstractDataReader):
 """
 # 使用例
 if __name__ == "__main__":
-    input_dir = "/work/datasets/Yahara/202304161129_MsFetusHumerus-23003-2-VS71-YS_VMSC07201/region_0"
+    input_dir = "/work/datasets/"
     output_dir = "/work/output_MERSCOPE"
     
     fov = 236
