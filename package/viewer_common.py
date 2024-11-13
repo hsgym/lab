@@ -31,10 +31,6 @@ class CommonPlotPolygonViewer:
         sns.scatterplot(data=selected_df, x="local_pixel_x", y="local_pixel_y", hue="gene", palette="hls", s=size, ax=ax, alpha=0.8, legend = show_legend)
         return
 
-    """
-    def draw_polygon(self, ax: plt.Axes, x_data: float, y_data: float) -> None:
-        ax.plot(x_data, y_data, linestyle="-", alpha=0.7, c="#d62728")
-    """
     def draw_poly(self, ax: plt.Axes, x_data: float, y_data: float) -> None:
         ax.plot(x_data, y_data, linestyle="-", alpha=0.7, c="#d62728")
 
@@ -85,27 +81,7 @@ class CommonPlotPolygonViewer:
 
         return path_list
         
-        """
-        # 以下はテスト済みのコード（動かなかったらこれに戻す）
-        path_list = []
-        if not image_keywords:
-            tif_files = [f for f in os.listdir(input_dir) if f.endswith(".png")]
-        else:
-            tif_files = [f for f in os.listdir(input_dir) if f.endswith(".png") and all(word in f for word in image_keywords)]
-
-        for tif_file in tif_files:
-            image_path = os.path.join(input_dir, tif_file)
-            path_list.append(image_path)
-
-        if not path_list:
-            raise Exception(f"no .tif files {'containing' if image_keywords else 'found'} {' and '.join(image_keywords)} in {input_dir}")
-
-        return path_list        
-        """
-
-        
-
-    def display_area(self, fov_cell_df: DataFrame, selected_df: DataFrame ,show_plot: bool = True, show_polygon: bool = True, image_keywords:List[str]=[], is_save: bool = False, ax: Optional[plt.Axes] = None) -> None:
+    def display_area(self, fov_cell_df: DataFrame, selected_df: DataFrame ,show_plot: bool = True, show_polygon: bool = True, image_keywords:List[str]=[], is_save: bool = False, ax: Optional[plt.Axes] = None, show_img:bool = True) -> None:
         if ax is None:
             fig, ax = plt.subplots(figsize=(16, 16))
         
@@ -113,10 +89,11 @@ class CommonPlotPolygonViewer:
         img = self.load_image(png_path[0])
         self.show_whole_fov(ax, fov_cell_df, selected_df, show_plot=show_plot, show_polygon=show_polygon)
         
-        ax.set_title(f"fov={self.fov}, z={self.z}, {self.title}")
+       
         ax.set_xlim([0, self.width])
         ax.set_ylim([self.height, 0])
-        ax.imshow(img, cmap="gray")
+        if shoe_img:
+            ax.imshow(img, cmap="gray")
         ax.get_xaxis().set_visible(False)
         ax.get_yaxis().set_visible(False)
 
@@ -126,6 +103,8 @@ class CommonPlotPolygonViewer:
             filename = os.path.join(tmp_dir, f"fov{self.fov}_z{self.z}_display_area.png")
             plt.savefig(filename, format="png")
             print(f"saved {filename}")
+        else:
+            ax.set_title(f"fov={self.fov}, z={self.z}, {self.title}")
 
         if ax is None:
             fig.tight_layout()

@@ -25,9 +25,7 @@ def my_LP_test(sce:pd.DataFrame, spe:pd.DataFrame, output_path: Optional[str] = 
     filter_condition = (sce.sum(axis=1) != 0)
     spe = spe.loc[filter_condition]  # 明示的にインデックスを一致させてフィルタリング
     sce = sce.loc[filter_condition]
-    # spe = spe[sce.sum(axis=1) != 0]
-    # sce = sce[sce.sum(axis=1) != 0]
-
+    
     # 遺伝子が発現している細胞のインデックスリストを作成
     cell_indexlist = []
     for gene in sce.index:

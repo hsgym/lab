@@ -26,12 +26,11 @@ class XeniumViewer(AbstractPlotPolygonViewer):
         total_gene_num = len(gene_list)
         plotter = CommonPlotPolygonViewer(img_dir, self.fov, self.z, title, self.width, self.height, gene_list=gene_list)
         plotter.display_area(cell_df, gene_df, show_plot, show_polygon, image_keywords)
-        # plotter.display_area(fov_cell_df, selected_df, show_plot=False)
-        # plotter.display_area(fov_cell_df, selected_df, show_polygon=False)
+
 
 """
 if __name__ == "__main__":
-    input_dir = "/work/datasets/Okada/output-XETG00130__0014491__Cont_3_1__20240403__094846"
+    input_dir = "/work/datasets/"
     output_dir = "/work/output_Xenium"
     resampling_factor = 0.2125
 
