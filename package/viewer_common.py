@@ -92,7 +92,7 @@ class CommonPlotPolygonViewer:
        
         ax.set_xlim([0, self.width])
         ax.set_ylim([self.height, 0])
-        if shoe_img:
+        if show_img:
             ax.imshow(img, cmap="gray")
         ax.get_xaxis().set_visible(False)
         ax.get_yaxis().set_visible(False)

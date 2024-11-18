@@ -7,9 +7,14 @@ import geopandas as gpd
 import pandas as pd
 from pandas import DataFrame
 from shapely.geometry import box
+from shapely.geometry import Point
 from shapely.ops import transform
 from typing import List, Tuple, Optional
-
+import pandas as pd
+from typing import Optional, Dict
+import json
+import os
+import h5py
 from package.reader_abc import AbstractDataReader
 from package.subset_creator_common import CommonSubsetCreator
 
@@ -17,7 +22,7 @@ class MerscopeDataReader(AbstractDataReader):
     def __init__(self, input_dir, output_dir, fov, width, height, z = None):
         super().__init__(input_dir, output_dir, fov, width, height)
         self.z = z
-        common = CommonSubsetCreator()
+        self.common = CommonSubsetCreator()
 
     def read_gene_data(self) -> Tuple[DataFrame, List[str]]:
         subset_dir, img_dir = self.get_path()
